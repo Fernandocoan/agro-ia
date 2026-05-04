@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a3a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AGRO IA — Assistente do Agricultor</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RESET & TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --vd:#1a3a1a;--vm:#2d5a27;--vc:#4a8c3f;
+  --dou:#c8952a;--dou2:#e8b84b;
+  --bege:#f5efe0;--bege2:#e8dcc8;--bco:#faf8f4;
+  --txt:#1a1a1a;--mut:#5a5a5a;
+  --shad:rgba(26,58,26,0.13);
+  --r:16px;--r2:24px;
+}
+
+html{height:100%;overflow:hidden}
+body{
+  height:100%;overflow:hidden;
+  font-family:'Lato',sans-serif;
+  background:var(--bege);
+  color:var(--txt);
+  display:flex;flex-direction:column;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SPLASH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#splash{
+  position:fixed;inset:0;
+  background:var(--vd);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9999;overflow:hidden;
+}
+#splash::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:40%;
+  background:radial-gradient(ellipse at 50% 100%,rgba(200,149,42,.22) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* rays */
+.sp-rays{
+  position:absolute;width:min(720px,160vw);height:min(720px,160vw);
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.7) rotate(-20deg);
+  opacity:0;
+  animation:raysIn 1.3s cubic-bezier(.22,1,.36,1) .2s forwards;
+}
+@keyframes raysIn{
+  to{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+}
+
+/* logo wrapper */
+.sp-logo{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  gap:clamp(14px,3vw,22px);
+}
+
+/* SVG logo bounce-in */
+.sp-svg-wrap{
+  opacity:0;
+  transform:scale(.45) translateY(24px);
+  animation:logoIn .85s cubic-bezier(.34,1.56,.64,1) .6s forwards;
+  filter:drop-shadow(0 12px 40px rgba(200,149,42,.55));
+}
+@keyframes logoIn{to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* AGRO text */
+.sp-agro{
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp .6s ease 1.1s forwards;
+  font-family:'Lato',sans-serif;font-weight:900;
+  font-size:clamp(48px,14vw,96px);
+  color:#fff;letter-spacing:clamp(8px,3vw,18px);
+  text-transform:uppercase;line-height:1;
+  text-align:center;
+}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+/* IA italic */
+.sp-ia{
+  opacity:0;transform:translateY(14px);
+  animation:fadeUp .5s ease 1.35s forwards;
+  font-family:'Playfair Display',serif;font-style:italic;font-weight:500;
+  font-size:clamp(17px,4.5vw,36px);
+  color:var(--dou2);letter-spacing:clamp(4px,1.5vw,8px);
+  text-align:center;margin-top:-4px;
+}
+
+/* sub */
+.sp-sub{
+  opacity:0;transform:translateY(10px);
+  animation:fadeUp .45s ease 1.6s forwards;
+  font-family:'Lato',sans-serif;font-weight:300;font-size:11px;
+  color:rgba(255,255,255,.3);letter-spacing:3px;text-transform:uppercase;
+  text-align:center;margin-top:-10px;
+}
+
+/* progress bar */
+.sp-bar-wrap{
+  position:absolute;bottom:clamp(32px,6vh,56px);left:50%;transform:translateX(-50%);
+  width:clamp(120px,40vw,170px);z-index:2;
+  opacity:0;animation:fadeUp .4s ease 1.75s forwards;
+}
+.sp-bar-track{height:1.5px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.sp-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--dou),var(--dou2));
+  width:0%;
+  animation:barFill 1.5s cubic-bezier(.4,0,.2,1) 1.85s forwards;
+}
+@keyframes barFill{to{width:100%}}
+.sp-bar-txt{
+  text-align:center;font-size:10px;color:rgba(255,255,255,.25);
+  font-family:'Lato',sans-serif;letter-spacing:2.5px;
+  margin-top:9px;text-transform:uppercase;
+}
+
+/* splash exit */
+#splash.bye{
+  animation:splashOut .75s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+}
+@keyframes splashOut{
+  0%{opacity:1;transform:scale(1)}
+  55%{opacity:1;transform:scale(1.03)}
+  100%{opacity:0;transform:scale(1.08)}
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   APP SHELL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#app{
+  display:flex;flex-direction:column;
+  height:100%;overflow:hidden;
+  opacity:0;transition:opacity .6s ease;
+}
+#app.on{opacity:1}
+
+/* ━━━ HEADER ━━━ */
+header{
+  background:var(--vd);
+  flex-shrink:0;position:relative;overflow:hidden;
+  padding-top:env(safe-area-inset-top);
+}
+header::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.015) 40px,rgba(255,255,255,.015) 41px);
+  pointer-events:none;
+}
+.h-inner{
+  max-width:720px;margin:0 auto;
+  padding:14px 16px 12px;
+  display:flex;align-items:center;gap:12px;position:relative;z-index:1;
+}
+.h-logo{width:40px;height:40px;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(200,149,42,.5))}
+.h-text h1{
+  font-family:'Lato',sans-serif;font-weight:900;font-size:17px;
+  letter-spacing:4px;color:#fff;text-transform:uppercase;line-height:1.1;
+}
+.h-text h1 em{font-style:italic;font-family:'Playfair Display',serif;font-weight:500;color:var(--dou2);letter-spacing:2px}
+.h-text p{font-size:10px;color:rgba(255,255,255,.38);font-weight:300;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.h-status{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10.5px;color:rgba(255,255,255,.36);white-space:nowrap}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ━━━ TOPICS BAR ━━━ */
+.topics{
+  background:var(--vm);flex-shrink:0;
+  padding:8px 12px;
+  display:flex;gap:7px;overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.topics::-webkit-scrollbar{display:none}
+.t-btn{
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
+  color:rgba(255,255,255,.82);padding:6px 13px;border-radius:20px;
+  font-size:12px;font-family:'Lato',sans-serif;cursor:pointer;white-space:nowrap;
+  transition:all .2s;flex-shrink:0;
+}
+.t-btn:active{background:rgba(255,255,255,.22);border-color:var(--dou);color:var(--dou2);transform:scale(.97)}
+
+/* ━━━ CHAT SCROLL AREA ━━━ */
+#chat{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:16px 12px;
+  display:flex;flex-direction:column;gap:16px;
+  max-width:720px;width:100%;margin:0 auto;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+}
+
+/* welcome card */
+.welcome{
+  background:var(--bco);border:1px solid var(--bege2);border-left:4px solid var(--dou);
+  border-radius:4px var(--r) var(--r) var(--r);padding:18px 18px;
+  box-shadow:0 2px 12px var(--shad);
+  animation:fadeIn .5s ease .1s both;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.welcome .av{width:32px;height:32px;background:var(--dou);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:8px}
+.welcome h2{font-family:'Playfair Display',serif;font-size:16px;color:var(--vd);margin-bottom:6px}
+.welcome p{font-size:14px;color:var(--mut);line-height:1.65}
+
+/* messages */
+.msg{display:flex;gap:9px;animation:fadeIn .3s ease}
+.msg.u{flex-direction:row-reverse}
+.av2{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px}
+.msg.b .av2{background:var(--vc)}
+.msg.u .av2{background:var(--dou)}
+
+.bubble{
+  max-width:calc(100% - 48px);
+  padding:12px 15px;font-size:14px;line-height:1.7;
+  word-break:break-word;
+}
+.msg.b .bubble{
+  background:var(--bco);border:1px solid var(--bege2);border-left:3px solid var(--vc);
+  border-radius:4px var(--r) var(--r) var(--r);
+  box-shadow:0 1px 6px var(--shad);
+}
+.msg.u .bubble{
+  background:var(--vd);color:#fff;
+  border-radius:var(--r) 4px var(--r) var(--r);
+  box-shadow:0 1px 6px var(--shad);
+}
+
+/* image inside bubble */
+.msg-img{
+  max-width:200px;max-height:200px;border-radius:10px;
+  margin-bottom:6px;display:block;object-fit:cover;
+  border:2px solid rgba(255,255,255,.15);
+}
+.msg.b .msg-img{border-color:var(--bege2)}
+
+/* typing */
+.typing{display:flex;align-items:center;gap:5px;padding:12px 15px;
+  background:var(--bco);border:1px solid var(--bege2);border-left:3px solid var(--vc);
+  border-radius:4px var(--r) var(--r) var(--r);width:fit-content;
+  box-shadow:0 1px 6px var(--shad);}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--vc);animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+
+/* ━━━ IMAGE PREVIEW (above input) ━━━ */
+#img-preview-bar{
+  display:none;background:var(--bege2);
+  padding:8px 16px;flex-shrink:0;
+  border-top:1px solid var(--bege2);
+}
+#img-preview-bar.show{display:flex;align-items:center;gap:10px}
+#img-preview-bar img{width:48px;height:48px;border-radius:8px;object-fit:cover;border:2px solid var(--dou)}
+#img-preview-bar span{font-size:12.5px;color:var(--mut);flex:1}
+#img-clear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--mut);padding:4px;line-height:1}
+
+/* ━━━ INPUT AREA ━━━ */
+.inp-area{
+  background:var(--bco);
+  border-top:1px solid var(--bege2);
+  flex-shrink:0;
+  padding:10px 12px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom));
+}
+.inp-inner{max-width:720px;margin:0 auto}
+
+.v-status{
+  text-align:center;font-size:12px;color:var(--mut);
+  margin-bottom:8px;min-height:16px;font-style:italic;
+}
+.v-status.rec{color:#dc2626;font-style:normal;font-weight:700}
+
+.inp-row{display:flex;gap:8px;align-items:flex-end}
+
+/* camera / image button */
+.btn-cam{
+  width:44px;height:44px;border-radius:50%;border:1.5px solid var(--bege2);
+  background:var(--bege);color:var(--vm);
+  font-size:19px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.btn-cam:active{background:var(--bege2);transform:scale(.95)}
+
+#txt{
+  flex:1;border:1.5px solid var(--bege2);border-radius:var(--r2);
+  padding:11px 16px;font-size:14.5px;font-family:'Lato',sans-serif;
+  background:var(--bege);color:var(--txt);outline:none;resize:none;
+  min-height:44px;max-height:110px;line-height:1.5;
+  transition:border-color .2s,background .2s;
+}
+#txt:focus{border-color:var(--vc);background:var(--bco)}
+#txt::placeholder{color:#bbb}
+
+.btn-mic{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--vd);color:#fff;font-size:19px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(26,58,26,.28);transition:all .2s;
+}
+.btn-mic:active{transform:scale(.93)}
+.btn-mic.rec{background:#dc2626;animation:micPulse 1s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 10px rgba(220,38,38,0)}}
+
+.btn-send{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--dou);color:#fff;font-size:19px;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(200,149,42,.35);transition:all .2s;
+}
+.btn-send:active{transform:scale(.93)}
+.btn-send:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* hidden file input */
+#file-in{display:none}
+
+footer{
+  text-align:center;padding:6px;font-size:10px;color:rgba(0,0,0,.2);
+  background:var(--bege);flex-shrink:0;
+  padding-bottom:calc(6px + env(safe-area-inset-bottom));
+  display:none; /* hidden on mobile by default, shown on desktop */
+}
+@media(min-width:600px){footer{display:block}}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LOGO SVG (reusable via <use> not possible inline — just repeat)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SPLASH SCREEN
+══════════════════════════════════════ -->
+<div id="splash">
+  <!-- rays -->
+  <svg class="sp-rays" viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g transform="translate(360,360)">
+      <g stroke="rgba(200,149,42,0.08)" stroke-width="1.5" stroke-linecap="round">
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(0)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(20)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(40)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(60)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(80)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(100)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(120)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(140)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(160)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(180)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(200)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(220)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(240)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(260)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(280)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(300)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(320)"/>
+        <line x1="0" y1="-340" x2="0" y2="-68" transform="rotate(340)"/>
+      </g>
+      <circle r="62"  fill="none" stroke="rgba(200,149,42,0.09)" stroke-width="1"/>
+      <circle r="96"  fill="none" stroke="rgba(200,149,42,0.05)" stroke-width="1"/>
+      <circle r="138" fill="none" stroke="rgba(200,149,42,0.03)" stroke-width="1"/>
+    </g>
+  </svg>
+
+  <div class="sp-logo">
+    <!-- LOGO SVG -->
+    <div class="sp-svg-wrap">
+      <svg width="clamp(100px,24vw,130px)" height="clamp(100px,24vw,130px)" viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg" style="width:clamp(100px,24vw,130px);height:clamp(100px,24vw,130px)">
+        <defs>
+          <radialGradient id="gbg"  cx="44%" cy="38%" r="65%"><stop offset="0%" stop-color="#2d5a27"/><stop offset="100%" stop-color="#111f11"/></radialGradient>
+          <radialGradient id="gsun" cx="50%" cy="18%" r="72%"><stop offset="0%" stop-color="#ffe06a"/><stop offset="100%" stop-color="#c8952a"/></radialGradient>
+          <radialGradient id="gglow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(232,184,75,0.28)"/><stop offset="100%" stop-color="rgba(200,149,42,0)"/></radialGradient>
+          <clipPath id="gclip"><circle cx="65" cy="65" r="60"/></clipPath>
+        </defs>
+        <circle cx="65" cy="65" r="60" fill="url(#gbg)"/>
+        <circle cx="65" cy="65" r="60" fill="none" stroke="#c8952a" stroke-width="2.6"/>
+        <circle cx="65" cy="65" r="54" fill="none" stroke="rgba(200,149,42,0.18)" stroke-width="0.7"/>
+        <g clip-path="url(#gclip)">
+          <rect x="5" y="82" width="120" height="48" fill="rgba(18,45,18,0.55)"/>
+          <rect x="5" y="82" width="120" height="2.5" fill="rgba(139,94,60,0.55)"/>
+          <ellipse cx="65" cy="82" rx="44" ry="6" fill="url(#gglow)"/>
+          <g transform="translate(65,82)" stroke="#e8b84b" stroke-width="1.2" opacity="0.52">
+            <line x1="0" y1="-36" x2="0" y2="-48" transform="rotate(-68)"/>
+            <line x1="0" y1="-36" x2="0" y2="-49" transform="rotate(-48)"/>
+            <line x1="0" y1="-34" x2="0" y2="-47" transform="rotate(-28)"/>
+            <line x1="0" y1="-32" x2="0" y2="-45" transform="rotate(-10)"/>
+            <line x1="0" y1="-32" x2="0" y2="-45" transform="rotate(10)"/>
+            <line x1="0" y1="-34" x2="0" y2="-47" transform="rotate(28)"/>
+            <line x1="0" y1="-36" x2="0" y2="-49" transform="rotate(48)"/>
+            <line x1="0" y1="-36" x2="0" y2="-48" transform="rotate(68)"/>
+          </g>
+          <path d="M43,82 A22,22 0 0,1 87,82 Z" fill="url(#gsun)"/>
+          <path d="M51,75 A11,11 0 0,1 69,70" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- espiga esquerda -->
+          <g transform="translate(28,87) rotate(-22)">
+            <line x1="0" y1="0" x2="0" y2="-36" stroke="#e8b84b" stroke-width="1.4" stroke-linecap="round"/>
+            <ellipse cx="-4"   cy="-13" rx="4"   ry="6.5" fill="rgba(232,184,75,0.62)"/>
+            <ellipse cx="4"    cy="-19" rx="4"   ry="6.5" fill="rgba(232,184,75,0.6)"/>
+            <ellipse cx="-3.5" cy="-24" rx="3.5" ry="6"   fill="rgba(232,184,75,0.5)"/>
+            <ellipse cx="3.5"  cy="-29" rx="3"   ry="5"   fill="rgba(232,184,75,0.42)"/>
+            <path d="M0,-17 Q-13,-22 -15,-29" fill="none" stroke="rgba(74,140,63,0.85)" stroke-width="1.3" stroke-linecap="round"/>
+          </g>
+          <!-- espiga direita -->
+          <g transform="translate(102,87) rotate(22)">
+            <line x1="0" y1="0" x2="0" y2="-36" stroke="#e8b84b" stroke-width="1.4" stroke-linecap="round"/>
+            <ellipse cx="4"    cy="-13" rx="4"   ry="6.5" fill="rgba(232,184,75,0.62)"/>
+            <ellipse cx="-4"   cy="-19" rx="4"   ry="6.5" fill="rgba(232,184,75,0.6)"/>
+            <ellipse cx="3.5"  cy="-24" rx="3.5" ry="6"   fill="rgba(232,184,75,0.5)"/>
+            <ellipse cx="-3.5" cy="-29" rx="3"   ry="5"   fill="rgba(232,184,75,0.42)"/>
+            <path d="M0,-17 Q13,-22 15,-29" fill="none" stroke="rgba(74,140,63,0.85)" stroke-width="1.3" stroke-linecap="round"/>
+          </g>
+        </g>
+        <!-- chip IA -->
+        <g transform="translate(65,48)">
+          <rect x="-11.5" y="-11.5" width="23" height="23" rx="4.5" fill="#0c1f0c" stroke="#c8952a" stroke-width="1.6"/>
+          <g stroke="#c8952a" stroke-width="1.3" stroke-linecap="round">
+            <line x1="-11.5" y1="-5.5" x2="-16.5" y2="-5.5"/>
+            <line x1="-11.5" y1="0"    x2="-16.5" y2="0"/>
+            <line x1="-11.5" y1="5.5"  x2="-16.5" y2="5.5"/>
+            <line x1="11.5"  y1="-5.5" x2="16.5"  y2="-5.5"/>
+            <line x1="11.5"  y1="0"    x2="16.5"  y2="0"/>
+            <line x1="11.5"  y1="5.5"  x2="16.5"  y2="5.5"/>
+            <line x1="-5.5"  y1="-11.5" x2="-5.5" y2="-16.5"/>
+            <line x1="5.5"   y1="-11.5" x2="5.5"  y2="-16.5"/>
+          </g>
+          <g stroke="rgba(200,149,42,0.28)" stroke-width="0.7" fill="none">
+            <polyline points="-7,-4 -3,-4 -3,0 3,0 3,4 7,4"/>
+            <polyline points="7,-4 3,-4 3,-7"/>
+          </g>
+          <text x="0" y="5" text-anchor="middle" font-family="Lato,sans-serif" font-weight="900" font-size="9" fill="#e8b84b" letter-spacing="1">IA</text>
+        </g>
+        <g fill="#e8b84b">
+          <circle cx="18" cy="27" r="1.4" opacity="0.5"/>
+          <circle cx="112" cy="23" r="1.1" opacity="0.45"/>
+          <circle cx="107" cy="42" r="0.9" opacity="0.4"/>
+          <circle cx="21"  cy="46" r="0.9" opacity="0.38"/>
+          <circle cx="65"  cy="12" r="1"   opacity="0.38"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="sp-agro">AGRO</div>
+    <div class="sp-ia">Inteligência do Campo</div>
+    <div class="sp-sub">Assistente Agrícola com IA</div>
+  </div>
+
+  <!-- progress bar centrada -->
+  <div class="sp-bar-wrap">
+    <div class="sp-bar-track"><div class="sp-bar-fill"></div></div>
+    <p class="sp-bar-txt">Preparando o campo...</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP
+══════════════════════════════════════ -->
+<div id="app">
+
+  <header>
+    <div class="h-inner">
+      <!-- logo pequena header -->
+      <svg class="h-logo" viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="hbg"  cx="44%" cy="38%" r="65%"><stop offset="0%" stop-color="#2d5a27"/><stop offset="100%" stop-color="#111f11"/></radialGradient>
+          <radialGradient id="hsun" cx="50%" cy="18%" r="72%"><stop offset="0%" stop-color="#ffe06a"/><stop offset="100%" stop-color="#c8952a"/></radialGradient>
+          <clipPath id="hclip"><circle cx="65" cy="65" r="60"/></clipPath>
+        </defs>
+        <circle cx="65" cy="65" r="60" fill="url(#hbg)"/>
+        <circle cx="65" cy="65" r="60" fill="none" stroke="#c8952a" stroke-width="2.6"/>
+        <g clip-path="url(#hclip)">
+          <rect x="5" y="82" width="120" height="2.5" fill="rgba(139,94,60,0.55)"/>
+          <g transform="translate(65,82)" stroke="#e8b84b" stroke-width="1.2" opacity="0.5">
+            <line x1="0" y1="-33" x2="0" y2="-45" transform="rotate(-45)"/>
+            <line x1="0" y1="-32" x2="0" y2="-44" transform="rotate(-20)"/>
+            <line x1="0" y1="-32" x2="0" y2="-44" transform="rotate(0)"/>
+            <line x1="0" y1="-32" x2="0" y2="-44" transform="rotate(20)"/>
+            <line x1="0" y1="-33" x2="0" y2="-45" transform="rotate(45)"/>
+          </g>
+          <path d="M43,82 A22,22 0 0,1 87,82 Z" fill="url(#hsun)"/>
+          <g transform="translate(28,87) rotate(-22)" stroke="#e8b84b" stroke-width="1.4" stroke-linecap="round">
+            <line x1="0" y1="0" x2="0" y2="-34"/>
+            <ellipse cx="-4" cy="-13" rx="4" ry="6.5" fill="rgba(232,184,75,0.6)" stroke="none"/>
+            <ellipse cx="4" cy="-19" rx="4" ry="6.5" fill="rgba(232,184,75,0.6)" stroke="none"/>
+            <ellipse cx="-3.5" cy="-24" rx="3.5" ry="6" fill="rgba(232,184,75,0.5)" stroke="none"/>
+          </g>
+          <g transform="translate(102,87) rotate(22)" stroke="#e8b84b" stroke-width="1.4" stroke-linecap="round">
+            <line x1="0" y1="0" x2="0" y2="-34"/>
+            <ellipse cx="4" cy="-13" rx="4" ry="6.5" fill="rgba(232,184,75,0.6)" stroke="none"/>
+            <ellipse cx="-4" cy="-19" rx="4" ry="6.5" fill="rgba(232,184,75,0.6)" stroke="none"/>
+            <ellipse cx="3.5" cy="-24" rx="3.5" ry="6" fill="rgba(232,184,75,0.5)" stroke="none"/>
+          </g>
+        </g>
+        <g transform="translate(65,48)">
+          <rect x="-11.5" y="-11.5" width="23" height="23" rx="4.5" fill="#0c1f0c" stroke="#c8952a" stroke-width="1.6"/>
+          <g stroke="#c8952a" stroke-width="1.3" stroke-linecap="round">
+            <line x1="-11.5" y1="-5" x2="-16" y2="-5"/>
+            <line x1="-11.5" y1="5"  x2="-16" y2="5"/>
+            <line x1="11.5"  y1="-5" x2="16"  y2="-5"/>
+            <line x1="11.5"  y1="5"  x2="16"  y2="5"/>
+          </g>
+          <text x="0" y="5" text-anchor="middle" font-family="Lato,sans-serif" font-weight="900" font-size="9" fill="#e8b84b" letter-spacing="1">IA</text>
+        </g>
+      </svg>
+
+      <div class="h-text">
+        <h1>AGRO <em>IA</em></h1>
+        <p>Assistente do Agricultor</p>
+      </div>
+      <div class="h-status"><div class="dot"></div><span>Online</span></div>
+    </div>
+  </header>
+
+  <!-- topics -->
+  <div class="topics">
+    <button class="t-btn" onclick="quick('Como tratar ferrugem na soja?')">🌱 Soja</button>
+    <button class="t-btn" onclick="quick('Quando plantar milho no sul do Brasil?')">🌽 Milho</button>
+    <button class="t-btn" onclick="quick('Como calcular espaçamento para pastagem?')">🐄 Pastagem</button>
+    <button class="t-btn" onclick="quick('Melhores herbicidas para o trigo?')">🌾 Trigo</button>
+    <button class="t-btn" onclick="quick('Como fazer calagem correta no solo?')">🧪 Solo</button>
+    <button class="t-btn" onclick="quick('Dicas de irrigação por gotejamento')">💧 Irrigação</button>
+    <button class="t-btn" onclick="quick('Como prevenir pragas no café?')">☕ Café</button>
+    <button class="t-btn" onclick="quick('Sinais de deficiência de nutrientes na folha')">🔬 Nutrição</button>
+  </div>
+
+  <!-- chat -->
+  <div id="chat">
+    <div class="welcome">
+      <div class="av">🤠</div>
+      <h2>Bom dia, amigo do campo!</h2>
+      <p>Sou o <strong>Zé da IA</strong>, seu assistente de agronegócio. Pode perguntar sobre <strong>pragas, doenças, plantio, solo, irrigação, pastagem e gado</strong>.<br><br>
+      Prefere falar? Toque no <strong>🎙️</strong>. Tem foto de uma planta doente? Toque em <strong>📷</strong> e mande a imagem!</p>
+    </div>
+  </div>
+
+  <!-- image preview -->
+  <div id="img-preview-bar">
+    <img id="img-thumb" src="" alt="preview">
+    <span>Imagem pronta para enviar</span>
+    <button id="img-clear" onclick="clearImg()" title="Remover imagem">✕</button>
+  </div>
+
+  <!-- input -->
+  <div class="inp-area">
+    <div class="inp-inner">
+      <div class="v-status" id="vstatus">Toque no 🎙️ para falar, ou escreva abaixo</div>
+      <div class="inp-row">
+        <button class="btn-cam" onclick="document.getElementById('file-in').click()" title="Enviar foto">📷</button>
+        <input type="file" id="file-in" accept="image/*" capture="environment" onchange="onFileSelect(event)">
+        <textarea id="txt" placeholder="Escreva sua pergunta..." rows="1"
+          onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+        <button class="btn-mic" id="bmic" onclick="toggleMic()" title="Falar">🎙️</button>
+        <button class="btn-send" id="bsend" onclick="send()" title="Enviar">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>AGRO IA · Campo Inteligente · Pollinations.ai · Sem chave necessária</footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   SPLASH TIMING
+══════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splash');
+  const app    = document.getElementById('app');
+  setTimeout(() => {
+    splash.classList.add('bye');
+    setTimeout(() => { splash.style.display = 'none'; app.classList.add('on'); }, 780);
+  }, 3600);
+});
+
+/* ══════════════════════════════════════
+   CONFIG
+══════════════════════════════════════ */
+const API_URL = 'https://text.pollinations.ai/openai';
+const MODEL   = 'openai';   // GPT-4o via Pollinations, sem chave
+
+const SYS = `Você é "Zé da IA", especialista em agronegócio e agricultura brasileira. Fala como um técnico do interior — simples, prático, amigável, sem parecer robô.
+
+REGRAS:
+1. Sempre em português do Brasil coloquial e fácil
+2. Linguagem simples para agricultores mais velhos — sem palavras difíceis
+3. Prático: diga EXATAMENTE o que fazer, em que quantidade, em que época
+4. Não comece com "Olá!", "Claro!", "Certamente!" — vá direto como um vizinho sabido
+5. Listas com "-" quando necessário. Sem asteriscos nem markdown
+6. Se não souber, sugira consultar um agrônomo local
+7. Foque em: agricultura, pecuária, solo, pragas, doenças, agronegócio, irrigação, adubação
+8. Outro assunto: "Sobre isso não entendo muito não... mas de lavoura posso ajudar!"
+9. Resposta tamanho médio — nem curta demais, nem longa demais
+10. Se receber uma imagem, analise e identifique pragas, doenças ou deficiências nutricionais visíveis
+
+Especialidades: soja, milho, trigo, café, cana, algodão, arroz, feijão, mandioca, horticultura, gado, pastagem, solo, calagem, adubação NPK, MIP, irrigação, máquinas agrícolas.`;
+
+let history   = [];
+let recog     = null;
+let isRec     = false;
+let wasVoice  = false;
+let pendingImg = null; // base64 string da imagem a enviar
+
+/* ══════════════════════════════════════
+   API CALL — Pollinations.ai (sem chave)
+══════════════════════════════════════ */
+async function callAI(userText, imgBase64 = null) {
+  // monta conteúdo da mensagem do usuário
+  let userContent;
+  if (imgBase64) {
+    userContent = [
+      { type: 'text', text: userText || 'O que você vê nesta imagem? Identifique pragas, doenças ou problemas na planta.' },
+      { type: 'image_url', image_url: { url: imgBase64 } }
+    ];
+  } else {
+    userContent = userText;
+  }
+
+  // monta payload com histórico
+  const messages = [
+    { role: 'system', content: SYS },
+    ...history,
+    { role: 'user', content: userContent }
+  ];
+
+  const resp = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 700 })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`API ${resp.status}: ${err.slice(0,120)}`);
+  }
+
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content ?? 'Não consegui responder. Tenta de novo!';
+}
+
+/* ══════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════ */
+function resize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+}
+
+function quick(q) { document.getElementById('txt').value = q; send(); }
+
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmt(t) {
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '• $1')
+    .replace(/\n/g, '<br>');
+}
+
+const chatEl = document.getElementById('chat');
+
+function scrollChat() {
+  setTimeout(() => { chatEl.scrollTop = chatEl.scrollHeight; }, 60);
+}
+
+function addUser(txt, imgSrc) {
+  const d = document.createElement('div');
+  d.className = 'msg u';
+  let imgHtml = imgSrc ? `<img class="msg-img" src="${imgSrc}" alt="imagem enviada">` : '';
+  let txtHtml = txt ? `<span>${esc(txt)}</span>` : '';
+  d.innerHTML = `<div class="av2">👤</div><div class="bubble">${imgHtml}${txtHtml}</div>`;
+  chatEl.appendChild(d);
+  scrollChat();
+}
+
+function addBot(txt) {
+  const d = document.createElement('div');
+  d.className = 'msg b';
+  d.innerHTML = `<div class="av2">🤠</div><div class="bubble">${fmt(txt)}</div>`;
+  chatEl.appendChild(d);
+  scrollChat();
+}
+
+function showTyping() {
+  const d = document.createElement('div');
+  d.className = 'msg b'; d.id = 'typing';
+  d.innerHTML = `<div class="av2">🤠</div><div class="typing"><span></span><span></span><span></span></div>`;
+  chatEl.appendChild(d);
+  scrollChat();
+}
+
+function hideTyping() { const e = document.getElementById('typing'); if(e) e.remove(); }
+
+/* ══════════════════════════════════════
+   IMAGE HANDLING
+══════════════════════════════════════ */
+function onFileSelect(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // reset input so same file can be re-selected
+  e.target.value = '';
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImg = ev.target.result; // data:image/...;base64,...
+    document.getElementById('img-thumb').src = pendingImg;
+    document.getElementById('img-preview-bar').classList.add('show');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImg() {
+  pendingImg = null;
+  document.getElementById('img-preview-bar').classList.remove('show');
+  document.getElementById('img-thumb').src = '';
+}
+
+/* ══════════════════════════════════════
+   SEND
+══════════════════════════════════════ */
+async function send() {
+  const input  = document.getElementById('txt');
+  const txt    = input.value.trim();
+  const imgB64 = pendingImg;
+
+  if (!txt && !imgB64) return;
+
+  // clear
+  input.value = ''; input.style.height = 'auto';
+  const imgForBubble = imgB64;
+  if (imgB64) clearImg();
+
+  // show user bubble
+  addUser(txt, imgForBubble);
+
+  // push text part to history (image not stored in history to save tokens)
+  const histText = txt || '(imagem enviada)';
+  history.push({ role: 'user', content: histText });
+
+  document.getElementById('bsend').disabled = true;
+  showTyping();
+
+  try {
+    const reply = await callAI(txt, imgForBubble);
+    history.push({ role: 'assistant', content: reply });
+    if (history.length > 20) history = history.slice(-20);
+    hideTyping();
+    addBot(reply);
+    if (wasVoice) { speak(reply); wasVoice = false; }
+  } catch(err) {
+    hideTyping();
+    console.error(err);
+    let msg = 'Tive um problema de conexão. Verifique sua internet e tente de novo.';
+    if (err.message.includes('429')) msg = 'Muitas perguntas seguidas. Aguarde uns segundos e tente de novo.';
+    addBot(msg);
+  }
+
+  document.getElementById('bsend').disabled = false;
+}
+
+/* ══════════════════════════════════════
+   MIC / VOICE
+══════════════════════════════════════ */
+function toggleMic() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    addBot('Para usar o microfone, abra este app no Google Chrome.'); return;
+  }
+  if (isRec) { recog?.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recog = new SR();
+  recog.lang = 'pt-BR'; recog.continuous = false; recog.interimResults = true;
+
+  recog.onstart = () => {
+    isRec = true;
+    document.getElementById('bmic').classList.add('rec');
+    document.getElementById('bmic').textContent = '⏹️';
+    document.getElementById('vstatus').textContent = '🔴 Gravando... Fale sua pergunta!';
+    document.getElementById('vstatus').className = 'v-status rec';
+  };
+
+  recog.onresult = (e) => {
+    let t = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+    document.getElementById('txt').value = t;
+    resize(document.getElementById('txt'));
+  };
+
+  recog.onend = () => {
+    isRec = false;
+    document.getElementById('bmic').classList.remove('rec');
+    document.getElementById('bmic').textContent = '🎙️';
+    document.getElementById('vstatus').textContent = 'Toque no 🎙️ para falar, ou escreva abaixo';
+    document.getElementById('vstatus').className = 'v-status';
+    const t = document.getElementById('txt').value.trim();
+    if (t) { wasVoice = true; send(); }
+  };
+
+  recog.onerror = () => {
+    isRec = false;
+    document.getElementById('bmic').classList.remove('rec');
+    document.getElementById('bmic').textContent = '🎙️';
+    document.getElementById('vstatus').textContent = 'Microfone com problema. Verifique as permissões.';
+    document.getElementById('vstatus').className = 'v-status';
+  };
+
+  recog.start();
+}
+
+/* ══════════════════════════════════════
+   TEXT-TO-SPEECH
+══════════════════════════════════════ */
+function speak(txt) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = txt.replace(/<[^>]*>/g,'').replace(/\*\*/g,'').replace(/\*/g,'').replace(/•/g,',').substring(0,600);
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = 'pt-BR'; u.rate = 0.92; u.pitch = 1.0;
+  const ptv = window.speechSynthesis.getVoices().find(v => v.lang.startsWith('pt'));
+  if (ptv) u.voice = ptv;
+  window.speechSynthesis.speak(u);
+}
+window.speechSynthesis?.getVoices();
+window.speechSynthesis?.addEventListener?.('voiceschanged', () => window.speechSynthesis.getVoices());
+
+/* ajuste de altura ao mudar orientação */
+window.addEventListener('resize', () => {
+  const t = document.getElementById('txt');
+  if(t.value) resize(t);
+});
+</script>
+</body>
+</html>
