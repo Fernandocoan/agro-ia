@@ -109,11 +109,11 @@ body{
   text-align:center;margin-top:-10px;
 }
 
-/* progress bar — inside the logo flex column, centered naturally */
+/* progress bar */
 .sp-bar-wrap{
-  width:clamp(130px,42vw,170px);z-index:2;
+  position:absolute;bottom:clamp(32px,6vh,56px);left:50%;transform:translateX(-50%);
+  width:clamp(120px,40vw,170px);z-index:2;
   opacity:0;animation:fadeUp .4s ease 1.75s forwards;
-  margin-top:4px;
 }
 .sp-bar-track{height:1.5px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
 .sp-bar-fill{
@@ -334,10 +334,6 @@ footer{
 }
 @media(min-width:600px){footer{display:block}}
 
-/* cursor de streaming */
-.cursor{display:inline-block;font-size:13px;color:var(--vc);animation:blink .7s infinite;margin-left:1px;vertical-align:baseline}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    LOGO SVG (reusable via <use> not possible inline — just repeat)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -458,13 +454,14 @@ footer{
     <div class="sp-agro">AGRO</div>
     <div class="sp-ia">Inteligência do Campo</div>
     <div class="sp-sub">Assistente Agrícola com IA</div>
+  </div>
 
-    <!-- progress bar — dentro do flex column, centrada automaticamente -->
-    <div class="sp-bar-wrap">
+  <!-- progress bar centrada -->
+  <div class="sp-bar-wrap">
     <div class="sp-bar-track"><div class="sp-bar-fill"></div></div>
     <p class="sp-bar-txt">Preparando o campo...</p>
   </div>
-</div><!-- /.sp-logo -->
+</div>
 
 <!-- ══════════════════════════════════════
      APP
@@ -589,10 +586,7 @@ window.addEventListener('DOMContentLoaded', () => {
    CONFIG
 ══════════════════════════════════════ */
 const API_URL = 'https://text.pollinations.ai/openai';
-// openai-fast = GPT-5 Nano Ultra Fast (sem visão)
-// openai      = GPT-5.4 Nano Fast & Balanced (com visão para imagens)
-const MODEL_FAST   = 'openai-fast';
-const MODEL_VISION = 'openai';
+const MODEL   = 'openai';   // GPT-4o via Pollinations, sem chave
 
 const SYS = `Você é "Zé da IA", especialista em agronegócio e agricultura brasileira. Fala como um técnico do interior — simples, prático, amigável, sem parecer robô.
 
@@ -617,22 +611,21 @@ let wasVoice  = false;
 let pendingImg = null; // base64 string da imagem a enviar
 
 /* ══════════════════════════════════════
-   API CALL — Pollinations.ai streaming
+   API CALL — Pollinations.ai (sem chave)
 ══════════════════════════════════════ */
-async function callAI(userText, imgBase64, onChunk) {
-  const hasImg = !!imgBase64;
-  const model  = hasImg ? MODEL_VISION : MODEL_FAST;
-
+async function callAI(userText, imgBase64 = null) {
+  // monta conteúdo da mensagem do usuário
   let userContent;
-  if (hasImg) {
+  if (imgBase64) {
     userContent = [
-      { type: 'text', text: userText || 'Analise esta imagem e identifique pragas, doenças ou deficiências nutricionais na planta.' },
+      { type: 'text', text: userText || 'O que você vê nesta imagem? Identifique pragas, doenças ou problemas na planta.' },
       { type: 'image_url', image_url: { url: imgBase64 } }
     ];
   } else {
     userContent = userText;
   }
 
+  // monta payload com histórico
   const messages = [
     { role: 'system', content: SYS },
     ...history,
@@ -642,12 +635,7 @@ async function callAI(userText, imgBase64, onChunk) {
   const resp = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages,
-      max_tokens: 600,
-      stream: !hasImg   // streaming só para texto (imagem retorna direto)
-    })
+    body: JSON.stringify({ model: MODEL, messages, max_tokens: 700 })
   });
 
   if (!resp.ok) {
@@ -655,39 +643,8 @@ async function callAI(userText, imgBase64, onChunk) {
     throw new Error(`API ${resp.status}: ${err.slice(0,120)}`);
   }
 
-  // ── IMAGEM: sem streaming ──
-  if (hasImg) {
-    const data = await resp.json();
-    return data.choices?.[0]?.message?.content ?? 'Não consegui analisar. Tenta de novo!';
-  }
-
-  // ── TEXTO: streaming palavra por palavra ──
-  const reader = resp.body.getReader();
-  const dec    = new TextDecoder();
-  let full     = '';
-  let buf      = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split('\n');
-    buf = lines.pop(); // guarda linha incompleta
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-      const raw = line.slice(6).trim();
-      if (raw === '[DONE]') break;
-      try {
-        const chunk = JSON.parse(raw);
-        const delta = chunk.choices?.[0]?.delta?.content ?? '';
-        if (delta) { full += delta; onChunk(full); }
-      } catch {}
-    }
-  }
-
-  return full || 'Não consegui responder. Tenta de novo!';
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content ?? 'Não consegui responder. Tenta de novo!';
 }
 
 /* ══════════════════════════════════════
@@ -728,24 +685,6 @@ function addUser(txt, imgSrc) {
   d.innerHTML = `<div class="av2">👤</div><div class="bubble">${imgHtml}${txtHtml}</div>`;
   chatEl.appendChild(d);
   scrollChat();
-}
-
-// cria bubble do bot e retorna referência ao conteúdo (para streaming)
-function createBotBubble(initialText) {
-  const d = document.createElement('div');
-  d.className = 'msg b';
-  d.innerHTML = `<div class="av2">🤠</div><div class="bubble">${fmt(initialText)}<span class="cursor">▍</span></div>`;
-  chatEl.appendChild(d);
-  scrollChat();
-  const bubbleEl = d.querySelector('.bubble');
-  // remove cursor quando terminar
-  bubbleEl._cursor = d.querySelector('.cursor');
-  return bubbleEl;
-}
-
-// finaliza bubble de streaming (remove cursor)
-function finalizeBubble(bubbleEl) {
-  if (bubbleEl?._cursor) { bubbleEl._cursor.remove(); bubbleEl._cursor = null; }
 }
 
 function addBot(txt) {
@@ -801,56 +740,34 @@ async function send() {
 
   if (!txt && !imgB64) return;
 
+  // clear
   input.value = ''; input.style.height = 'auto';
   const imgForBubble = imgB64;
   if (imgB64) clearImg();
 
+  // show user bubble
   addUser(txt, imgForBubble);
 
+  // push text part to history (image not stored in history to save tokens)
   const histText = txt || '(imagem enviada)';
   history.push({ role: 'user', content: histText });
 
   document.getElementById('bsend').disabled = true;
-
-  // cria bubble de resposta (começa vazia, vai preenchendo)
-  let botBubble = null;
-
-  if (!imgForBubble) {
-    // texto: mostra bubble imediatamente para streaming
-    botBubble = createBotBubble('');
-  } else {
-    showTyping();
-  }
+  showTyping();
 
   try {
-    const reply = await callAI(txt, imgForBubble, (partialText) => {
-      // chamado a cada chunk do stream
-      if (botBubble) {
-        botBubble.innerHTML = fmt(partialText);
-        scrollChat();
-      }
-    });
-
-    if (imgForBubble) {
-      hideTyping();
-      addBot(reply);
-    }
-    // para texto, botBubble já foi atualizado no stream
-
+    const reply = await callAI(txt, imgForBubble);
     history.push({ role: 'assistant', content: reply });
     if (history.length > 20) history = history.slice(-20);
-    finalizeBubble(botBubble);
+    hideTyping();
+    addBot(reply);
     if (wasVoice) { speak(reply); wasVoice = false; }
-
   } catch(err) {
-    if (imgForBubble) hideTyping();
-    if (botBubble) { botBubble.innerHTML = fmt('Tive um problema de conexão. Verifique sua internet e tente de novo.'); }
-    else {
-      console.error(err);
-      let msg = 'Tive um problema de conexão. Verifique sua internet e tente de novo.';
-      if (err.message.includes('429')) msg = 'Muitas perguntas seguidas. Aguarde uns segundos e tente de novo.';
-      addBot(msg);
-    }
+    hideTyping();
+    console.error(err);
+    let msg = 'Tive um problema de conexão. Verifique sua internet e tente de novo.';
+    if (err.message.includes('429')) msg = 'Muitas perguntas seguidas. Aguarde uns segundos e tente de novo.';
+    addBot(msg);
   }
 
   document.getElementById('bsend').disabled = false;
