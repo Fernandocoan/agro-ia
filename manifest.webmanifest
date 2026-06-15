@@ -1,0 +1,19 @@
+{
+  "name": "AGRO IA",
+  "short_name": "AGRO IA",
+  "description": "Assistente inteligente para agricultores, com texto, voz e análise de fotos.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfaf5",
+  "theme_color": "#102714",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
