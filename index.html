@@ -640,7 +640,7 @@ var SYS=[
   "Foque em agricultura, pecuária, solo, pragas, doenças, irrigação, adubação, pastagem, colheita e manejo.",
   "Se o assunto fugir do agro, diga: De lavoura posso ajudar."
 ].join("\n");
-var state={history:[],pendingImage:null,busy:false,recognition:null,recording:false,voiceMode:false,lastBot:""};
+var state={history:[],pendingImage:null,busy:false,recognition:null,recording:false,voiceMode:false,lastBot:"",cooldownUntil:0,cooldownTimer:null};
 var els={};
 
 function boot(){
@@ -724,6 +724,21 @@ function setBusy(on){
   els.cameraBtn.disabled=on;
   els.micBtn.disabled=on&&state.recording===false;
 }
+function startCooldown(seconds){
+  state.cooldownUntil=Date.now()+(seconds*1000);
+  clearInterval(state.cooldownTimer);
+  state.cooldownTimer=setInterval(function(){
+    var left=Math.ceil((state.cooldownUntil-Date.now())/1000);
+    if(left<=0){
+      clearInterval(state.cooldownTimer);
+      state.cooldownTimer=null;
+      state.cooldownUntil=0;
+      setHint("Pode tentar novamente.");
+      return;
+    }
+    setHint("IA gratuita em limite temporário. Aguarde "+left+"s para tentar de novo.");
+  },250);
+}
 function setHint(text,rec){
   els.hint.querySelector("span").textContent=text;
   els.hint.classList.toggle("rec",!!rec);
@@ -805,6 +820,11 @@ async function send(){
   var text=els.textInput.value.trim();
   var img=state.pendingImage;
   if(state.busy||(!text&&!img))return;
+  if(state.cooldownUntil>Date.now()){
+    var left=Math.ceil((state.cooldownUntil-Date.now())/1000);
+    toast("Aguarde "+left+"s para tentar de novo");
+    return;
+  }
   if(!navigator.onLine){toast("Sem internet para consultar a IA");return;}
   els.textInput.value="";
   resizeText();updateCount();
@@ -826,7 +846,15 @@ async function send(){
     if(state.voiceMode){speak(reply);state.voiceMode=false;}
     setHint("Pronto. Pode mandar outra dúvida ou foto.");
   }catch(err){
-    var msg=err.name==="AbortError"?"A resposta demorou demais. Tente uma pergunta mais curta ou aguarde alguns segundos.":"Problema de conexão com a IA. Aguarde um pouco e tente novamente.";
+    var msg;
+    if(err&&err.message==="RATE_LIMIT"){
+      startCooldown(20);
+      msg="A IA gratuita está com muitas consultas agora. Aguarde uns 20 segundos e tente novamente. Se continuar, é limite temporário do serviço Pollinations, não erro do seu app.";
+    }else if(err.name==="AbortError"){
+      msg="A resposta demorou demais. Tente uma pergunta mais curta ou aguarde alguns segundos.";
+    }else{
+      msg="Problema de conexão com a IA. Aguarde um pouco e tente novamente.";
+    }
     node.querySelector(".bot-text").innerHTML=format(msg);
     addTools(node,msg);
     setHint("Não consegui concluir agora.");
@@ -845,6 +873,7 @@ async function askText(node){
     signal:ctrl.signal
   });
   clearTimeout(timer);
+  if(resp.status===429)throw new Error("RATE_LIMIT");
   if(!resp.ok)throw new Error("HTTP "+resp.status);
   var target=node.querySelector(".bot-text");
   var full="";
@@ -904,6 +933,7 @@ async function askImage(text,img){
     signal:ctrl.signal
   });
   clearTimeout(timer);
+  if(resp.status===429)throw new Error("RATE_LIMIT");
   if(!resp.ok)throw new Error("HTTP "+resp.status);
   var data=await resp.json();
   return (data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||"Não consegui interpretar a imagem. Tente outra foto com mais luz e foco.";
