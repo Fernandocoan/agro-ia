@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="AGRO IA">
 <meta name="description" content="AGRO IA: assistente inteligente para agricultores, com chat, voz e análise de fotos da lavoura.">
 <title>AGRO IA</title>
+<meta name="agro-ia-version" content="mobile-v3">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.86em' font-size='84'%3E%F0%9F%8C%BE%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +34,7 @@
   --soft-shadow:0 10px 28px rgba(16,39,20,.08);
 }
 html,body{height:100%;margin:0}
-html{overflow:hidden}
+html{overflow:hidden;max-width:100vw}
 body{
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color:var(--ink);
@@ -42,8 +43,9 @@ body{
   overflow:hidden;
   position:fixed;
   inset:0;
+  max-width:100vw;
 }
-#app,.shell,.timeline,.hero-card,.composer,.input-row{min-width:0}
+#app,.shell,.timeline,.hero-card,.composer,.input-row,.topbar,.chips-wrap,#chat{min-width:0;max-width:100vw}
 button,textarea,input{font:inherit}
 button{border:0;cursor:pointer}
 #app{
@@ -512,9 +514,10 @@ textarea:focus{
 @keyframes load{to{width:100%}}
 @keyframes pop{from{opacity:0;transform:scale(.75) translateY(14px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @media (max-width:720px){
+  html,body{overflow-x:hidden}
   body{background:#fbfaf5}
   #app{grid-template-rows:auto auto minmax(0,1fr) auto auto}
-  .shell{padding-left:14px;padding-right:14px}
+  .shell{width:100%;padding-left:12px;padding-right:12px;overflow:hidden}
   .topbar-inner{min-height:62px;padding-top:9px;padding-bottom:9px;gap:10px}
   .topbar{box-shadow:0 10px 28px rgba(16,39,20,.12)}
   .mark{width:40px;height:40px;border-radius:14px}
@@ -526,35 +529,36 @@ textarea:focus{
   .status{width:32px;height:32px;padding:0;justify-content:center}
   .status-dot{width:8px;height:8px}
   .icon-btn{width:34px;height:34px;border-radius:12px;font-size:15px}
-  .chips-wrap{background:#173719}
-  .chips{padding-top:8px;padding-bottom:8px;gap:7px}
+  .chips-wrap{background:#173719;overflow:hidden}
+  .chips{padding-top:8px;padding-bottom:8px;gap:7px;overflow-x:auto;overflow-y:hidden}
   .chip{height:32px;padding:0 12px;font-size:12px;border-radius:12px}
-  #chat{padding-top:12px;padding-bottom:14px}
+  #chat{padding-top:10px;padding-bottom:12px;overflow-x:hidden}
   .timeline{gap:12px}
-  .hero-card{border-radius:17px;box-shadow:0 10px 28px rgba(16,39,20,.08);overflow:hidden}
-  .hero-head{padding:14px;gap:11px}
-  .avatar{width:36px;height:36px;border-radius:12px;font-size:13px}
-  .hero-card h2{font-size:19px}
-  .hero-card p{font-size:13px;line-height:1.45;margin-top:6px}
-  .notice{font-size:11.5px;padding:9px 11px;border-radius:13px;margin-top:10px}
-  .hero-grid{display:none}
+  .hero-card{border-radius:16px;box-shadow:0 8px 22px rgba(16,39,20,.07);overflow:hidden;width:100%;max-width:100%}
+  .hero-head{padding:12px;gap:10px;align-items:flex-start}
+  .avatar{width:34px;height:34px;border-radius:11px;font-size:12px}
+  .hero-card h2{font-size:18px;line-height:1.12}
+  .hero-card p{font-size:12.5px;line-height:1.38;margin-top:5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .notice{display:none}
+  .hero-grid{display:none!important}
+  .hero-grid .mini{display:none!important}
   .mini{min-height:auto;padding:11px 14px}
   .mini strong{font-size:12.5px}
   .mini span{font-size:11.5px;margin-top:3px}
   .msg{gap:8px}
   .face{width:32px;height:32px;border-radius:12px;font-size:13px}
-  .bubble{max-width:calc(100% - 40px);border-radius:16px;font-size:13.5px;line-height:1.55;padding:12px 13px}
+  .bubble{max-width:calc(100vw - 58px);border-radius:16px;font-size:13.5px;line-height:1.55;padding:12px 13px}
   .bot .bubble{border-top-left-radius:5px}
   .user .bubble{border-top-right-radius:5px}
   .bot-tools{gap:7px;margin-top:9px}
   .tool{height:29px;padding:0 10px;font-size:11.5px}
-  .composer{box-shadow:0 -10px 30px rgba(16,39,20,.08)}
+  .composer{box-shadow:0 -10px 30px rgba(16,39,20,.08);overflow:hidden}
   .composer-inner{padding-top:9px}
   .hint{font-size:11.5px;margin-bottom:7px}
   .hint #count{display:none}
-  .input-row{grid-template-columns:42px minmax(0,1fr) 42px 42px;gap:7px;align-items:end;width:100%;overflow:hidden}
+  .input-row{grid-template-columns:42px minmax(0,1fr) 42px 42px;gap:7px;align-items:end;width:100%;max-width:100%;overflow:hidden}
   .round,.send{width:42px;height:42px;border-radius:14px;font-size:17px}
-  textarea{min-height:42px;max-height:104px;border-radius:15px;padding:10px 12px;font-size:14px}
+  textarea{min-height:42px;max-height:104px;border-radius:15px;padding:10px 12px;font-size:14px;max-width:100%;overflow:hidden}
   .image-inner{padding-top:8px;padding-bottom:8px}
   #thumb{width:48px;height:48px;border-radius:13px}
   .image-text strong{font-size:12.5px}
@@ -571,7 +575,6 @@ textarea:focus{
   .hero-head{padding:12px}
   .hero-card h2{font-size:18px}
   .hero-card p{font-size:12.5px}
-  .notice{font-size:11px}
   .input-row{grid-template-columns:40px minmax(0,1fr) 40px 40px;gap:6px}
   .round,.send{width:40px;height:40px;border-radius:13px}
   textarea{min-height:40px;font-size:13.5px}
@@ -589,7 +592,6 @@ textarea:focus{
   .hint{font-size:11px}
 }
 @media (max-height:700px) and (max-width:720px){
-  .notice{display:none}
   .hero-card p{margin-top:5px}
   #chat{padding-top:10px}
 }
