@@ -1,4 +1,4 @@
-const CACHE_NAME = "agro-ia-v3";
+const CACHE_NAME = "agro-ia-v4-gemini";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", event => {

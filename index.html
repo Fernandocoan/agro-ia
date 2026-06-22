@@ -698,7 +698,7 @@ textarea:focus{
 <div class="toast" id="toast">Copiado</div>
 
 <script>
-var API="https://text.pollinations.ai/openai";
+var API="https://agro-ia-api.fernandocoansombrio.workers.dev";
 var SYS=[
   "Você é Zé da IA, assistente agrícola brasileiro para pequenos e médios produtores.",
   "Responda sempre em português do Brasil, com linguagem simples, prática e respeitosa.",
@@ -918,7 +918,7 @@ async function send(){
     var msg;
     if(err&&err.message==="RATE_LIMIT"){
       startCooldown(20);
-      msg="A IA gratuita está com muitas consultas agora. Aguarde uns 20 segundos e tente novamente. Se continuar, é limite temporário do serviço Pollinations, não erro do seu app.";
+      msg="A IA gratuita está com muitas consultas agora. Aguarde uns 20 segundos e tente novamente. Se continuar, a cota gratuita do serviço pode estar temporariamente limitada.";
     }else if(err.name==="AbortError"){
       msg="A resposta demorou demais. Tente uma pergunta mais curta ou aguarde alguns segundos.";
     }else{
